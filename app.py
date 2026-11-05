@@ -39,7 +39,7 @@ def probe(url: str, x_api_key: str | None = Header(None)):
     require_key(x_api_key)
     validate_url(url)
     try:
-        with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "skip_download": True, "noplaylist": True, "socket_timeout": 15}) as ydl:
+        with yt_dlp.YoutubeDL({"quiet": True, "no_warnings": True, "skip_download": True, "noplaylist": True, "socket_timeout": 15, "impersonate": "chrome"}) as ydl:
             info = ydl.extract_info(url, download=False)
         return {"available": True, "title": info.get("title"), "duration": info.get("duration"), "extractor": info.get("extractor_key")}
     except Exception:
@@ -55,7 +55,7 @@ def download(url: str, background_tasks: BackgroundTasks, x_api_key: str | None 
     folder = tempfile.mkdtemp(prefix="bv-")
     try:
         opts = {"quiet": True, "no_warnings": True, "noplaylist": True, "socket_timeout": 20,
-                "retries": 1, "fragment_retries": 1, "max_filesize": MAX_BYTES,
+                "retries": 1, "fragment_retries": 1, "max_filesize": MAX_BYTES, "impersonate": "chrome",
                 "format": "best[ext=mp4][height<=720]/best[height<=720]/best",
                 "outtmpl": os.path.join(folder, "video.%(ext)s"),
                 "merge_output_format": "mp4", "restrictfilenames": True}
