@@ -72,3 +72,26 @@ def download(url: str, background_tasks: BackgroundTasks, x_api_key: str | None 
     except Exception:
         cleanup(folder)
         raise HTTPException(422, "Não foi possível baixar este vídeo. Pode haver restrições de acesso ou tamanho.")
+
+# Experimental endpoint: no change to the published Floot application.
+@app.get("/browser-probe")
+async def browser_probe(url: str, x_api_key: str | None = Header(None)):
+    require_key(x_api_key)
+    validate_url(url)
+    from mv_browser import inspect_mv
+    try:
+        return await inspect_mv(url)
+    except Exception:
+        raise HTTPException(422, "Navegador experimental indisponível ou página inacessível")
+
+@app.get("/browser-download")
+async def browser_download(url: str, background_tasks: BackgroundTasks, x_api_key: str | None = Header(None)):
+    require_key(x_api_key)
+    validate_url(url)
+    from mv_browser import attempt_mv_download
+    try:
+        folder, path = await attempt_mv_download(url, MAX_BYTES)
+        background_tasks.add_task(cleanup, folder)
+        return FileResponse(path, media_type="video/mp4", filename="video.mp4")
+    except Exception:
+        raise HTTPException(422, "MV Tools não disponibilizou um download pela interface pública neste ambiente")
